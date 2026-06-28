@@ -1,0 +1,21 @@
+[package]
+name = "structured_mesh"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "structured_mesh"
+path = "src/lib.rs"
+
+[[bin]]
+name = "structured_mesh"
+path = "src/main.rs"
+
+[dependencies]
+thiserror = "1"
+clap = { version = "4", features = ["derive"] }
+quick-xml = "0.31"
+
+[dev-dependencies]
+proptest = "1"
+tempfile = "3"
