@@ -9,7 +9,8 @@ Delaunay triangulator.
 ![Language](https://img.shields.io/badge/language-Rust%20%2B%20C%2B%2B-orange)
 ![License](https://img.shields.io/badge/license-MIT%20-green)
 
-![MeshGen UI Main Dashboard](/home/elderiuos/Pictures/Screenshots/ss2.png)
+![MeshGen UI Main Dashboard](/home/elderiuos/Pictures/Screenshots/<img width="1200" height="800" alt="ss2" src="https://github.com/user-attachments/assets/38348b71-7de9-472d-9a4e-dab95a17c8e6" />
+ss2.png)
 ---
 
 ## Table of Contents
