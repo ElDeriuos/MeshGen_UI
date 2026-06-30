@@ -1,0 +1,24 @@
+It create all outputs and they seem to be correct
+
+
+Starting EasyMesh generation…
+Working.  Please wait !
+200 300 400 500 
+  501 nodes,   997 elements,  1497 sides
+Improving the mesh quality.  Please wait !
+Processing material marks. Please wait !
+TecPlot output file created !
+ParaView VTK output file created !
+Encapsulated Post Script file created !
++==========================================
+| Total execution time: 0.1 [s]
++------------------------------------------
+| Time spent in in_elem   : 0.011 [s]    (11%)
+| Time spent in classify 1: 0.008 [s]    (8%)
+| Time spent in classify d: 0.025 [s]    (25%)
+| Time spent in classify 2: 0.004 [s]    (4%)
+| Time spent in classify 3: 0.004 [s]    (4%)
+| Time spent in new_node  : 0.022 [s]    (22%)
+| Time spent elsewhere: 0.026 [s]    (26%)
++------------------------------------------
+✘ Failed (exit code 1): EasyMesh exited with code 1
