@@ -9,7 +9,7 @@
 //! ```text
 //! VARIABLES=X  Y
 //! ZONE T="main" N=<nnode> E=<nelem> F=FEPOINT ET=QUADRILATERAL
-//! x  y          ← nnode lines, format '(2f11.1)'
+//! x  y          ← nnode lines, format '(2f11.4)'
 //! n1 n2 n4 n3   ← nelem lines, 4 × width-9 integers (n4/n3 Fortran swap)
 //! ```
 //!
@@ -39,7 +39,7 @@
 //! | Row-span zone header | 21 | `"ZONE T=\" NRO {:3}\" I={:3} J={:3} F=POINT"` |
 //! | Col-span zone header | 31 | `"ZONE T=\" NCO {:3}\" I={:3} J={:3} F=POINT"` |
 //! | FEPOINT zone header | 11 | `"ZONE T=\"main\" N={:6} E={:6} F=FEPOINT ET=QUADRILATERAL"` |
-//! | Coordinates (ch3) | 12 | `"{:11.1}{:11.1}"` |
+//! | Coordinates (ch3) | 12 | `"{:11.4}{:11.4}"` |
 //! | Coordinates (ch4) | 22 | `"{:11.4}{:11.4}"` |
 
 use std::io::{BufWriter, Write};
@@ -90,7 +90,7 @@ pub fn write_ch3(plot: &PlotData, path: &Path) -> Result<(), MeshError> {
     )
     .map_err(MeshError::Io)?;
 
-    // Node coordinates — format 12: '(2f11.1)'
+    // Node coordinates — format 12: '(2f11.4)'
     for &(x, y) in &plot.nodes {
         writeln!(w, "{}", fmt_2f11_1(x, y)).map_err(MeshError::Io)?;
     }

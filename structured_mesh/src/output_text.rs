@@ -11,7 +11,7 @@
 //! | `nx ny` header | list-directed | `" {} {}\n"` |
 //! | `nro` / `nco` counts | list-directed | `" {}\n"` |
 //! | Row/col span records | `'(5i6)'` | [`fmt_5i6`] |
-//! | Node coordinates | `'(2f11.1)'` | [`fmt_2f11_1`] |
+//! | Node coordinates | `'(2f11.4)'` | [`fmt_2f11_1`] |
 //! | Element connectivity | `'(6i9)'` | [`fmt_6i9`] |
 //!
 //! ## File structure
@@ -50,11 +50,11 @@ pub fn fmt_5i6(a: i64, b: i64, c: i64, d: i64, e: i64) -> String {
     format!("{:6}{:6}{:6}{:6}{:6}", a, b, c, d, e)
 }
 
-/// Fortran `'(2f11.1)'` — two floats, each right-justified in width 11 with
-/// 1 decimal place.  Produces exactly 22 characters.
+/// Fortran `'(2f11.4)'` — two floats, each right-justified in width 11 with
+/// 4 decimal places.  Produces exactly 22 characters.
 #[inline]
 pub fn fmt_2f11_1(x: f64, y: f64) -> String {
-    format!("{:11.1}{:11.1}", x, y)
+    format!("{:11.4}{:11.4}", x, y)
 }
 
 /// Fortran `'(6i9)'` — six integers, each right-justified in width 9.
@@ -186,13 +186,13 @@ mod tests {
     #[test]
     fn fmt_2f11_1_width() {
         let s = fmt_2f11_1(1.0, 2.0);
-        assert_eq!(s.len(), 22, "2f11.1 must be exactly 22 chars: {s:?}");
+        assert_eq!(s.len(), 22, "2f11.4 must be exactly 22 chars: {s:?}");
     }
 
     #[test]
     fn fmt_2f11_1_content() {
-        // Fortran '(2f11.1)': "        1.0        2.0"
-        assert_eq!(fmt_2f11_1(1.0, 2.0), "        1.0        2.0");
+        // '(2f11.4)': "     1.0000     2.0000"
+        assert_eq!(fmt_2f11_1(1.0, 2.0), "     1.0000     2.0000");
     }
 
     #[test]
