@@ -199,8 +199,21 @@ impl MeshApp {
 
         let (dlg_tx, dlg_rx) = std::sync::mpsc::channel::<DialogResult>();
 
+        // Resolve the default "outputs" directory relative to the executable,
+        // then create it (and any missing parents) if it doesn't already exist.
+        let outputs_dir: PathBuf = std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.join("outputs")))
+            .unwrap_or_else(|| PathBuf::from("outputs"));
+
+        let _ = std::fs::create_dir_all(&outputs_dir);
+
+        let mut project = ProjectState::default();
+        project.structured.output_dir = Some(outputs_dir.clone());
+        project.easymesh.output_dir  = Some(outputs_dir);
+
         MeshApp {
-            project: ProjectState::default(),
+            project,
             run_status: RunStatus::Idle,
             show_open_dir_button: false,
             show_build_button: false,

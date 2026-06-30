@@ -108,9 +108,19 @@ pub fn run(args: EasyMeshRunArgs, tx: Sender<WorkerMsg>) {
     }
 
     // ------------------------------------------------------------------
-    // 2. Write .d file using a stable stem so Easy names outputs predictably.
+    // 2. Ensure output directory exists, then write .d file using a stable
+    //    stem so Easy names outputs predictably.
     //    Outputs will be: mesh.n, mesh.e, mesh.dat, mesh.vtk, etc.
     // ------------------------------------------------------------------
+    if let Err(e) = std::fs::create_dir_all(&args.output_dir) {
+        let _ = tx.send(WorkerMsg::RunComplete {
+            success: false,
+            exit_code: None,
+            error_text: Some(format!("Failed to create output directory: {e}")),
+        });
+        return;
+    }
+
     let stem = args
         .input_stem
         .as_deref()
@@ -200,16 +210,25 @@ pub fn run(args: EasyMeshRunArgs, tx: Sender<WorkerMsg>) {
 
     // ------------------------------------------------------------------
     // 7. Send RunComplete (Req 12 AC4)
+    //
+    // NOTE: The EasyMesh binary (Easy / Easy.exe) always exits with code 1,
+    // even on a fully successful run.  Its `algor()` function ends with a
+    // hard-coded `return 1;` after printing the timer report.  Only the
+    // early-exit paths (no arguments, --examples) return 0.
+    //
+    // We therefore determine success by checking whether EasyMesh produced
+    // its primary output file (`<stem>.n`), rather than trusting the exit
+    // code.  A signal-terminated process (exit_code == None on Unix) is
+    // still treated as a hard failure.
     // ------------------------------------------------------------------
     match exit_status {
         Ok(status) => {
             let exit_code = status.code();
-            let success = status.success();
 
             // On Unix a None exit code means the process was killed by a signal
             // (e.g. SIGTERM / SIGKILL) — map this to ProcessTerminated.
             #[cfg(unix)]
-            if exit_code.is_none() && !success {
+            if exit_code.is_none() {
                 let err = AppError::ProcessTerminated;
                 let _ = tx.send(WorkerMsg::RunComplete {
                     success: false,
@@ -219,11 +238,17 @@ pub fn run(args: EasyMeshRunArgs, tx: Sender<WorkerMsg>) {
                 return;
             }
 
+            // Determine success by the presence of the `.n` output file
+            // (always written on a successful mesh generation) rather than
+            // the exit code, which is always 1 in the EasyMesh binary.
+            let node_file = args.output_dir.join(format!("{}.n", stem));
+            let success = node_file.exists();
+
             let error_text = if success {
                 None
             } else {
                 Some(format!(
-                    "EasyMesh exited with code {}",
+                    "EasyMesh exited with code {} and no output was produced",
                     exit_code.unwrap_or(-1)
                 ))
             };

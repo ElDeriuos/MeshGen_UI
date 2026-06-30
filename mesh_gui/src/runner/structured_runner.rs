@@ -112,6 +112,11 @@ pub fn run(args: StructuredRunArgs, tx: Sender<WorkerMsg>) {
 
     let plot = build_plot_data(&state);
 
+    // ── Ensure output directory exists ───────────────────────────────────────
+    if let Err(e) = std::fs::create_dir_all(&args.output_dir) {
+        fail!(e);
+    }
+
     // ── Output writers ───────────────────────────────────────────────────────
 
     if args.fmt_vtk {

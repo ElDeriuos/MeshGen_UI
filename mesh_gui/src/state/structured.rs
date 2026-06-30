@@ -83,7 +83,7 @@ impl Default for StructuredState {
             selected_node: None,
             edges: Vec::new(),
             selected_edge: None,
-            output_dir: None,
+            output_dir: Some(PathBuf::from("outputs")),
             // Req 6 AC1: all format boxes unchecked by default
             fmt_fepoint: false,
             fmt_zones: false,
@@ -126,12 +126,12 @@ mod tests {
         assert!(s.edges.is_empty());
     }
 
-    /// No paths are set by default.
+    /// No input file path is set by default; output_dir defaults to "outputs".
     #[test]
     fn default_paths_are_none() {
         let s = StructuredState::default();
         assert!(s.file_path.is_none());
-        assert!(s.output_dir.is_none());
+        assert_eq!(s.output_dir, Some(PathBuf::from("outputs")));
     }
 
     /// StructuredState round-trips through JSON.

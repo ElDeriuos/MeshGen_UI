@@ -106,32 +106,62 @@ pub struct EasyMeshState {
     pub easymesh_binary: PathBuf,
 }
 
-/// Resolve the EasyMesh binary path relative to the running executable.
+/// Resolve the EasyMesh binary path by checking a prioritised list of
+/// candidate locations.
 ///
-/// Strategy (in order):
-/// 1. Walk up from `current_exe()` looking for a sibling `EasyMesh/Src/<binary>`.
-///    This handles both debug (`target/debug/mesh_gui`) and release builds.
-/// 2. Fall back to a CWD-relative path `EasyMesh/Src/<binary>` so tests and
-///    `cargo run` from the workspace root still work.
+/// Search order (first hit wins):
+/// 1. Alongside the GUI binary itself — `<exe_dir>/Easy[.exe]`
+/// 2. `<exe_dir>/../EasyMesh/Src/Easy[.exe]`
+/// 3. `<exe_dir>/../../EasyMesh/Src/Easy[.exe]`
+/// 4. `<exe_dir>/../../../EasyMesh/Src/Easy[.exe]`
+/// 5. `<exe_dir>/../../../../EasyMesh/Src/Easy[.exe]`
+/// 6. Walk up from `<exe_dir>` up to 6 levels checking for a sibling
+///    `EasyMesh/Src/<binary>` at each level (covers `target/debug`,
+///    `target/release`, etc.).
+/// 7. CWD-relative `EasyMesh/Src/<binary>` fallback (works with `cargo run`
+///    from the workspace root).
 pub fn resolve_easymesh_binary() -> PathBuf {
     let bin_name = expected_binary_name();
-    // Try to find the binary relative to the executable location.
+
     if let Ok(exe) = std::env::current_exe() {
-        let mut dir = exe.as_path();
-        // Walk up at most 6 levels (handles target/release, target/debug, etc.)
-        for _ in 0..6 {
-            if let Some(parent) = dir.parent() {
-                let candidate = parent.join("EasyMesh").join("Src").join(bin_name);
+        if let Some(exe_dir) = exe.parent() {
+            // 1. Alongside the GUI binary itself.
+            let alongside = exe_dir.join(bin_name);
+            if alongside.exists() {
+                return alongside;
+            }
+
+            // 2–5. Relative "../EasyMesh/Src/", "../../EasyMesh/Src/", etc.
+            let mut base = exe_dir.to_path_buf();
+            for _ in 0..4 {
+                base = match base.parent() {
+                    Some(p) => p.to_path_buf(),
+                    None => break,
+                };
+                let candidate = base.join("EasyMesh").join("Src").join(bin_name);
                 if candidate.exists() {
                     return candidate;
                 }
-                dir = parent;
-            } else {
-                break;
+            }
+
+            // 6. Walk up from exe_dir checking for `EasyMesh/Src/<binary>` at
+            //    each level (handles nested build artefact directories).
+            let mut dir = exe_dir.to_path_buf();
+            for _ in 0..6 {
+                let candidate = dir.join("EasyMesh").join("Src").join(bin_name);
+                if candidate.exists() {
+                    return candidate;
+                }
+                match dir.parent() {
+                    Some(p) => dir = p.to_path_buf(),
+                    None => break,
+                }
             }
         }
     }
-    // Fallback: CWD-relative (works when running `cargo run` from workspace root)
+
+    // 7. Fallback: CWD-relative (works when running `cargo run` from the
+    //    workspace root or from within the mesh_gui directory).
     PathBuf::from("EasyMesh").join("Src").join(bin_name)
 }
 
@@ -144,7 +174,7 @@ impl Default for EasyMeshState {
             selected_point: None,
             segments: Vec::new(),
             selected_segment: None,
-            output_dir: None,
+            output_dir: Some(PathBuf::from("outputs")),
             // Req 7 AC1
             fmt_tec: false,
             fmt_vtk: false,

@@ -65,7 +65,7 @@ pub fn show_log_panel(app: &mut MeshApp, ctx: &egui::Context) {
             // ScrollArea renders so we can detect manual scrolling.
             let scroll_id = egui::Id::new("log_scroll_area");
 
-            let mut scroll_area = egui::ScrollArea::vertical()
+            let scroll_area = egui::ScrollArea::vertical()
                 .id_salt(scroll_id)
                 .auto_shrink([false, false])
                 .stick_to_bottom(app.log_auto_scroll);
