@@ -7,11 +7,13 @@ ifeq ($(OS),Windows_NT)
     RMDIR   = rmdir /s /q
     MV      = move /y
     EXE     = .exe
+    FIX_PATH = $(subst /,\,$1)
 else
     RM      = rm -f
     RMDIR   = rm -rf
     MV      = mv -f
     EXE     =
+    FIX_PATH = $1
 endif
 
 EASY_DIR    = EasyMesh/Src
@@ -27,15 +29,15 @@ all: easymesh mesh_gui
 # ── EasyMesh ──────────────────────────────────────────────────────────────────
 easymesh:
 	$(MAKE) -C $(EASY_DIR)
-	$(MV) $(EASY_DIR)/$(EASY_BIN) $(EASY_BIN)
+	$(MV) $(call FIX_PATH,$(EASY_DIR)/$(EASY_BIN)) $(EASY_BIN)
 
 # ── mesh_gui (Rust / Cargo) ───────────────────────────────────────────────────
 mesh_gui:
 	cargo build --release --manifest-path $(CARGO_DIR)/Cargo.toml
-	$(MV) $(CARGO_DIR)/target/release/$(CARGO_BIN) $(CARGO_BIN)
+	$(MV) $(call FIX_PATH,$(CARGO_DIR)/target/release/$(CARGO_BIN)) $(CARGO_BIN)
 
 # ── Clean ─────────────────────────────────────────────────────────────────────
 # Removes all build artifacts; keeps the binaries in this directory.
 clean:
 	$(MAKE) -C $(EASY_DIR) clean
-	$(RMDIR) $(CARGO_DIR)/target
+	$(RMDIR) $(call FIX_PATH,$(CARGO_DIR)/target)
